@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -104,4 +106,54 @@ public class PersonServiceTest {
 		assertTrue(personList.isEmpty());
 		assertEquals(0, personList.size());
 	}
+	
+	@DisplayName("JUnit Test for Given Person Id When FindById then Return Person Object")
+	@Test
+	void testGivenPersonId_WhenFindById_thenReturnPersonObject() {
+		// Given / Arrange
+		when(repository.findById(anyLong())).thenReturn(Optional.of(person0));
+
+		// When / Act
+		Person savedPerson = service.findById(1L);
+
+		// Then / Assert
+		assertNotNull(savedPerson);
+		assertEquals("Leandro", savedPerson.getFirstName());
+	}
+	
+	@DisplayName("JUnit Test for Given Person Object When Update Person then Return Updated Person Object")
+	@Test
+	void testGivenPersonObject_WhenUpdatePerson_thenReturnUpdatedPersonObject() {
+		// Given / Arrange
+		when(repository.findById(anyLong())).thenReturn(Optional.of(person0));
+		
+		person0.setId(1L);
+		person0.setEmail("leandro@erudio.com.br");
+		person0.setFirstName("Leonardo");
+		
+		when(repository.save(person0)).thenReturn(person0);
+		
+		// When / Act
+		Person updatedPerson = service.update(person0);
+
+		// Then / Assert
+		assertNotNull(updatedPerson);
+		assertEquals("Leonardo", updatedPerson.getFirstName());
+		assertEquals("leandro@erudio.com.br", updatedPerson.getEmail());
+	}
+
+	@DisplayName("JUnit Test for Given Person Id When Delete Person hen Do Nothing")
+	@Test
+	void testGivenPersonId_WhenDeletePerson_thenDoNothing() {
+		// Given / Arrange
+		person0.setId(1L);
+		when(repository.findById(anyLong())).thenReturn(Optional.of(person0));
+		
+		// When / Act
+		service.delete(person0.getId());
+
+		// Then / Assert
+		verify(repository, times(1)).delete(person0);
+	}
+	
 }
