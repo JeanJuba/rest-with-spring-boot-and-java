@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.erudio.exceptions.ResourceNotFoundException;
 import br.com.erudio.model.Person;
 import br.com.erudio.services.PersonService;
 
@@ -79,6 +80,37 @@ public class PersonControllerTest {
 
 		// Then / Assert
 		response.andExpect(status().isOk()).andDo(print()).andExpect(jsonPath("$.size()").value(persons.size()));
+	}
+
+	@DisplayName("test Given Person Id When Find By Id then Return Person Object")
+	@Test
+	void testGivenPersonId_WhenFindById_thenReturnPersonObject() throws JsonProcessingException, Exception {
+		// Given / Arrange
+		Long personId = 1L;
+		when(service.findById(personId)).thenReturn(person);
+
+		// When / Act
+		ResultActions response = mockMvc.perform(get("/person/{id}", personId));
+
+		// Then / Assert
+		response.andExpect(status().isOk()).andDo(print())
+				.andExpect(jsonPath("$.firstName").value(person.getFirstName()))
+				.andExpect(jsonPath("$.lastName").value(person.getLastName()))
+				.andExpect(jsonPath("$.email").value(person.getEmail()));
+	}
+	
+	@DisplayName("test Given Invalid Person Id When Find By Id then Return Not Found")
+	@Test
+	void testGivenInvalidPersonId_WhenFindById_thenReturnNotFound() throws JsonProcessingException, Exception {
+		// Given / Arrange
+		Long personId = 1L;
+		when(service.findById(personId)).thenThrow(ResourceNotFoundException.class);
+
+		// When / Act
+		ResultActions response = mockMvc.perform(get("/person/{id}", personId));
+
+		// Then / Assert
+		response.andExpect(status().isNotFound()).andDo(print());
 	}
 
 }

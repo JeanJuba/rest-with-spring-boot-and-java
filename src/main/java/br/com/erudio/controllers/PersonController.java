@@ -30,15 +30,19 @@ public class PersonController {
 	}
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Person findById(@PathVariable(name = "id") Long id) throws Exception {
-		return personService.findById(id);
+	public ResponseEntity<Person> findById(@PathVariable(name = "id") Long id) throws Exception {
+		try {
+			return ResponseEntity.ok(personService.findById(id));
+		} catch (Exception ex) {
+			return ResponseEntity.notFound().build();
+		}
 	}
-	
+
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Person create(@RequestBody Person person) throws Exception {
 		return personService.create(person);
 	}
-	
+
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Person update(@PathVariable(name = "id") Long id, @RequestBody Person person) throws Exception {
 		return personService.update(person);
@@ -47,8 +51,8 @@ public class PersonController {
 	@DeleteMapping(value = "/{id}")
 	public ResponseEntity<?> delete(@PathVariable(name = "id") Long id) throws Exception {
 		personService.delete(id);
-		
+
 		return ResponseEntity.noContent().build();
 	}
-	
+
 }
