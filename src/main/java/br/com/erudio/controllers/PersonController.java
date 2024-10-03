@@ -43,9 +43,13 @@ public class PersonController {
 		return personService.create(person);
 	}
 
-	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Person update(@PathVariable(name = "id") Long id, @RequestBody Person person) throws Exception {
-		return personService.update(person);
+	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Person> update(@RequestBody Person person) throws Exception {
+		try {
+			return ResponseEntity.ok(personService.update(person));
+		} catch (Exception ex) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 	@DeleteMapping(value = "/{id}")

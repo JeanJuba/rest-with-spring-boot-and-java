@@ -1,9 +1,12 @@
 package br.com.erudio.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -98,7 +101,7 @@ public class PersonControllerTest {
 				.andExpect(jsonPath("$.lastName").value(person.getLastName()))
 				.andExpect(jsonPath("$.email").value(person.getEmail()));
 	}
-	
+
 	@DisplayName("test Given Invalid Person Id When Find By Id then Return Not Found")
 	@Test
 	void testGivenInvalidPersonId_WhenFindById_thenReturnNotFound() throws JsonProcessingException, Exception {
@@ -111,6 +114,56 @@ public class PersonControllerTest {
 
 		// Then / Assert
 		response.andExpect(status().isNotFound()).andDo(print());
+	}
+
+	@DisplayName("test Given Updated Person When Update then Return Updated Person Object")
+	@Test
+	void testGivenUpdatedPerson_WhenUpdate_thenReturnUpdatedPersonObject() throws JsonProcessingException, Exception {
+		// Given / Arrange
+		Long personId = 1L;
+		when(service.findById(personId)).thenReturn(person);
+		when(service.update(any(Person.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		// When / Act
+		Person updatedPerson = new Person("Leonardo", "Costa", "Uberlândia", "Male", "leonardo@erudio.com.br");
+		ResultActions response = mockMvc.perform(put("/person").contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(updatedPerson)));
+
+		// Then / Assert
+		response.andExpect(status().isOk()).andDo(print())
+				.andExpect(jsonPath("$.firstName").value(updatedPerson.getFirstName()))
+				.andExpect(jsonPath("$.lastName").value(updatedPerson.getLastName()))
+				.andExpect(jsonPath("$.email").value(updatedPerson.getEmail()));
+	}
+
+	@DisplayName("test Given Unexistent Updated Person When Update then Return Not Found")
+	@Test
+	void testUnexistentUpdatedPerson_WhenUpdate_thenReturnNotFound() throws JsonProcessingException, Exception {
+		// Given / Arrange
+		Long personId = 1L;
+		when(service.findById(personId)).thenThrow(ResourceNotFoundException.class);
+		when(service.update(any(Person.class))).thenAnswer(invocation -> invocation.getArgument(1));
+
+		// When / Act
+		Person updatedPerson = new Person("Leonardo", "Costa", "Uberlândia", "Male", "leonardo@erudio.com.br");
+		ResultActions response = mockMvc.perform(put("/person").contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(updatedPerson)));
+
+		// Then / Assert
+		response.andExpect(status().isNotFound()).andDo(print());
+	}
+
+	@DisplayName("test Given Unexistent Updated Person When Update then Return Not Found")
+	@Test
+	void testPersonId_WhenDelete_thenNoContent() throws JsonProcessingException, Exception {
+		// Given / Arrange
+		Long personId = 1L;
+		doNothing().when(service).delete(personId);
+
+		// When / Act
+		ResultActions response = mockMvc.perform(delete("/person/{id}", personId));
+		// Then / Assert
+		response.andExpect(status().isNoContent()).andDo(print());
 	}
 
 }
